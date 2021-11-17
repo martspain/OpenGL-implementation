@@ -126,6 +126,76 @@ class ModelObj(object):
         # Dibujar
         glDrawArrays(GL_TRIANGLES, 0, len(self.model.faces) * 3 ) # Para dibujar vertices en orden
 
+class Prop(object):
+    def __init__(self, verts, indices):
+
+        self.createVertexBuffer(verts, indices)
+
+        self.position = glm.vec3(0,0,0)
+        self.rotation = glm.vec3(0,0,0)
+        self.scale = glm.vec3(1,1,1)
+    
+    def getModelMatrix(self):
+        identity = glm.mat4(1)
+
+        translateMatrix = glm.translate(identity, self.position)
+        pitch = glm.rotate(identity, glm.radians( self.rotation.x ), glm.vec3(1,0,0) )
+        yaw   = glm.rotate(identity, glm.radians( self.rotation.y ), glm.vec3(0,1,0) )
+        roll  = glm.rotate(identity, glm.radians( self.rotation.z ), glm.vec3(0,0,1) )
+        rotationMatrix = pitch * yaw * roll
+        scaleMatrix = glm.scale(identity, self.scale)
+        return translateMatrix * rotationMatrix * scaleMatrix
+
+    def createVertexBuffer(self, verts, indices):
+        self.vertBuffer = verts
+        self.indexBuffer = indices
+
+
+        self.VBO = glGenBuffers(1) #Vertex Buffer Object
+        self.VAO = glGenVertexArrays(1) #Vertex Array Object
+        self.EAO = glGenBuffers(1) #Element Array Object
+
+    def renderInScene(self):
+
+        glBindVertexArray(self.VAO)
+        glBindBuffer(GL_ARRAY_BUFFER, self.VBO)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.EAO)
+
+        glBufferData(GL_ARRAY_BUFFER,           #Buffer ID
+                     self.vertBuffer.nbytes,    #Buffer size in bytes
+                     self.vertBuffer,           #Buffer data
+                     GL_STATIC_DRAW )           #Usage
+
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,   #Buffer ID
+                     self.indexBuffer.nbytes,    #Buffer size in bytes
+                     self.indexBuffer,           #Buffer data
+                     GL_STATIC_DRAW )           #Usage
+
+        # Atributo de posicion
+        glVertexAttribPointer(0,                # Attribute number
+                              3,                # Size
+                              GL_FLOAT,         # Type
+                              GL_FALSE,         # It it normalized?
+                              4 * 6,            # Stride
+                              ctypes.c_void_p(0)) # Offset
+
+        glEnableVertexAttribArray(0)
+
+        # Atributo de color
+        glVertexAttribPointer(1,                # Attribute number
+                              3,                # Size
+                              GL_FLOAT,         # Type
+                              GL_FALSE,         # It it normalized?
+                              4 * 6,            # Stride
+                              ctypes.c_void_p(4 * 3)) # Offset
+
+        glEnableVertexAttribArray(1)
+
+
+
+        #glDrawArrays(GL_TRIANGLES, 0, 3 ) # Para dibujar vertices en orden
+        glDrawElements(GL_TRIANGLES, len(self.indexBuffer), GL_UNSIGNED_INT, None) #Para dibujar con indices
+    
 
 class Renderer(object):
     def __init__(self, screen):
@@ -185,7 +255,7 @@ class Renderer(object):
 
 
     def render(self):
-        #glClearColor(0.2,0.2,0.2,1)
+        glClearColor(0.2,0.2,0.2,1)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glUseProgram(self.active_shader)

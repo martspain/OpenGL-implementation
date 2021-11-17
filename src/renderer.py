@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 import numpy as np
-from gl import Renderer, ModelObj
+from gl import Renderer, ModelObj, Prop
 import shaders
 
 width = 500
@@ -16,11 +16,10 @@ clock = pygame.time.Clock()
 rend = Renderer(screen)
 rend.setShaders(shaders.vertex_shader, shaders.fragment_shader)
 
-face = ModelObj('res/obj/model.obj', 'res/textures/model.bmp')
+face = ModelObj('res/obj/triangular.obj', 'res/textures/pyramid.bmp')
 face.position.z = -5
 
 rend.scene.append(face)
-
 
 isRunning = True
 while isRunning:
